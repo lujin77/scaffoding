@@ -57,8 +57,8 @@ def configure_logging(app):
     from logging import Formatter
     from logging.handlers import RotatingFileHandler
 
-    FORMAT = "%(asctime)-15s %(levelname)s - %(message)s"
-    FORMAT_ERR = "%(asctime)s %(levelname)s - %(message)s [in %(pathname)s:%(lineno)d - %(funcName)s]"
+    FORMAT = "'%(name)-12s: %(levelname)-8s %(asctime)s - %(message)s'"
+    FORMAT_ERR = "'%(name)-12s: %(levelname)-8s %(asctime)s - %(message)s' [in %(pathname)s:%(lineno)d - %(funcName)s]"
 
     logging.basicConfig(format=FORMAT)
     if app.config.get('TESTING'):
