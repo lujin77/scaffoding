@@ -2,9 +2,6 @@
 # encoding: utf-8
 import os
 import sys
-import logging
-import logging.handlers
-from datetime import datetime
 
 from flask import Flask, current_app
 
@@ -55,7 +52,15 @@ def register_blueprint(app):
 
 
 def configure_logging(app):
-    logging.basicConfig()
+
+    import logging
+    from logging import Formatter
+    from logging.handlers import RotatingFileHandler
+
+    FORMAT = "%(asctime)-15s %(levelname)s - %(message)s"
+    FORMAT_ERR = "%(asctime)s %(levelname)s - %(message)s [in %(pathname)s:%(lineno)d - %(funcName)s]"
+
+    logging.basicConfig(format=FORMAT)
     if app.config.get('TESTING'):
         app.logger.setLevel(logging.CRITICAL)
         return
@@ -65,11 +70,15 @@ def configure_logging(app):
 
     app.logger.setLevel(logging.INFO)
 
-    info_log_path = os.path.join(app.config['PROJECT_PATH'], "log/{}-info.log".format(app.config['SITE_TITLE']))
-    info_file_handler = logging.handlers.RotatingFileHandler(info_log_path, maxBytes=104857600, backupCount=10)
+    # info log
+    path = os.path.join(app.config['PROJECT_PATH'], "log/{}_info.log".format(app.config['SITE_TITLE']))
+    info_file_handler = RotatingFileHandler(path, maxBytes=104857600, backupCount=10)
     info_file_handler.setLevel(logging.INFO)
-    info_file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s '
-        '[in %(pathname)s:%(lineno)d]')
-    )
+    info_file_handler.setFormatter(Formatter(FORMAT))
     app.logger.addHandler(info_file_handler)
+    # error log
+    path = os.path.join(app.config['PROJECT_PATH'], "log/{}_err.log".format(app.config['SITE_TITLE']))
+    err_file_handler = RotatingFileHandler(path, maxBytes=104857600, backupCount=10)
+    err_file_handler.setLevel(logging.ERROR)
+    err_file_handler.setFormatter(Formatter(FORMAT_ERR))
+    app.logger.addHandler(err_file_handler)
