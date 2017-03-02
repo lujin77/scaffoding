@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- No need to set system property "Log4jContextSelector" to any value
+     when using <asyncLogger> or <asyncRoot>. -->
+
+<Configuration status="INFO">
+    <Properties>
+        <Property name="baseDir">logs</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- 控制台 -->
+        <console name="CONSOLE" target="SYSTEM_OUT" follow="true">
+            <patternLayout charset="UTF-8" pattern="%5p (%F:%L) %d - %m%n" />
+        </console>
+        <!-- Async Loggers will auto-flush in batches, so switch off immediateFlush. -->
+        <RollingFile name="RandomAccessFile" fileName="${baseDir}/geo-estimate-subscription.log"
+                     immediateFlush="true" append="true"
+                     filePattern="${baseDir}/geo-estimate-subscription-%d{yyyy-MM-dd-HH}-%i.log">
+            <filters>
+                <thresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL" />
+            </filters>
+            <PatternLayout>
+                <Pattern>%5p (%F:%L) %d - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="2 GB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="100">
+                <!--
+                -->
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="*/geo-estimate-subscription-*.log">
+                        <IfLastModified age="5d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="200 GB" />
+                                <IfAccumulatedFileCount exceeds="10" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- 错误 -->
+        <RollingFile name="RollingFileError" fileName="${baseDir}/error.log"
+                     immediateFlush="false" append="true"
+                     filePattern="${baseDir}/error-%d{yyyy-MM-dd}.log">
+            <filters>
+                <thresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY" />
+            </filters>
+            <PatternLayout>
+                <Pattern>%5p (%F:%L) %d - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="error-*.log">
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="MonitorFile" fileName="${baseDir}/geo-estimate-monitor.log"
+                     immediateFlush="true" append="true"
+                     filePattern="${baseDir}/geo-estimate-monitor-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout>
+                <Pattern>%5p (%F:%L) %d - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="2 GB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10" >
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="*/geo-estimate-monitor-*.log">
+                        <IfLastModified age="5d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="60 GB" />
+                                <IfAccumulatedFileCount exceeds="10" />
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="Monitor" level="info" additivity="false">
+            <Appender-ref ref="MonitorFile" />
+        </Logger>
+
+        <Root level="info" includeLocation="true">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="RandomAccessFile"/>
+            <AppenderRef ref="RollingFileError"/>
+        </Root>
+    </Loggers>
+</Configuration>
